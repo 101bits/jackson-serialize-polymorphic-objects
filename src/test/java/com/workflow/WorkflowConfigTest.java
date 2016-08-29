@@ -6,11 +6,21 @@ import com.datasources.RemoteDataSource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class WorkflowConfigTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Test
     public void testSerializeFileDataSource() throws Exception {
         DataSource dataSource = new FileDataSource("/tmp/", ",", ".*");
@@ -28,6 +38,22 @@ public class WorkflowConfigTest {
             assertEquals(((FileDataSource) dataSource).getDelimiter(), node.get("dataSource").get("delimiter").asText());
             assertEquals(((FileDataSource) dataSource).getFileNamePattern(), node.get("dataSource").get("fileNamePattern").asText());
         }
+    }
+
+    @Test
+    public void testSerializeAndSerializeFileDataSourceFromFile() throws Exception {
+        File fileDataSource = temporaryFolder.newFile("fileDataSource.json");
+
+        DataSource dataSource = new FileDataSource("/tmp/", ",", ".*");
+        WorkflowConfig config = new WorkflowConfig("fileWorkflowConfig", dataSource);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(fileDataSource, config);
+
+        assertTrue(fileDataSource.length() > 0);
+
+        DataSource readDataSource = mapper.readValue(fileDataSource, DataSource.class);
+        assertNotNull(readDataSource);
     }
 
     @Test
