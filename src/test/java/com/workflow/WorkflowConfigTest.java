@@ -44,7 +44,7 @@ public class WorkflowConfigTest {
     public void testSerializeAndSerializeFileDataSourceFromFile() throws Exception {
         File fileDataSource = temporaryFolder.newFile("fileDataSource.json");
 
-        DataSource dataSource = new FileDataSource("/tmp/", ",", ".*");
+        FileDataSource dataSource = new FileDataSource("/tmp/", ",", ".*");
         WorkflowConfig config = new WorkflowConfig("fileWorkflowConfig", dataSource);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -52,8 +52,31 @@ public class WorkflowConfigTest {
 
         assertTrue(fileDataSource.length() > 0);
 
-        DataSource readDataSource = mapper.readValue(fileDataSource, DataSource.class);
-        assertNotNull(readDataSource);
+        WorkflowConfig configFromFile = mapper.readValue(fileDataSource, WorkflowConfig.class);
+        assertNotNull(configFromFile);
+        assertEquals(dataSource.getPath(), ((FileDataSource) configFromFile.getDataSource()).getPath());
+        assertEquals(dataSource.getDelimiter(), ((FileDataSource) configFromFile.getDataSource()).getDelimiter());
+        assertEquals(dataSource.getFileNamePattern(), ((FileDataSource) configFromFile.getDataSource()).getFileNamePattern());
+    }
+
+    @Test
+    public void testSerializeAndSerializeRemoteDataSourceFromFile() throws Exception {
+        File remoteDataSource = temporaryFolder.newFile("remoteDataSource.json");
+
+        RemoteDataSource dataSource = new RemoteDataSource("host", 0, "root", "abc");
+        WorkflowConfig config = new WorkflowConfig("fileWorkflowConfig", dataSource);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(remoteDataSource, config);
+
+        assertTrue(remoteDataSource.length() > 0);
+
+        WorkflowConfig configFromFile = mapper.readValue(remoteDataSource, WorkflowConfig.class);
+        assertNotNull(configFromFile);
+        assertEquals(dataSource.getHost(), ((RemoteDataSource) configFromFile.getDataSource()).getHost());
+        assertEquals(dataSource.getPort(), ((RemoteDataSource) configFromFile.getDataSource()).getPort());
+        assertEquals(dataSource.getUserName(), ((RemoteDataSource) configFromFile.getDataSource()).getUserName());
+        assertEquals(dataSource.getPassword(), ((RemoteDataSource) configFromFile.getDataSource()).getPassword());
     }
 
     @Test
